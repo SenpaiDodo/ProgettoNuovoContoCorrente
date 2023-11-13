@@ -3,17 +3,19 @@ package it.betacom.model;
 import java.time.LocalDate;
 
 public class ContoDeposito extends Conto {
-	
+
 	public ContoDeposito(String titolare, LocalDate dataApertura, double saldo, double tassoInteresse) {
 		super(titolare, dataApertura, saldo, tassoInteresse);
 	}
 
 	@Override
 	public void preleva(LocalDate dataMovimento, double importo) {
-		if(importo < 1000.1) {
-			double tempSaldo = super.saldo - importo;
-			super.saldo = super.saldo - importo;
-			super.listaMovimenti.add(new Movimento(dataMovimento, TipoOperazione.PRELIEVO, importo, tempSaldo));
+		if(importo <= super.saldo) {
+			if(importo < 1000.1) {
+				double tempSaldo = super.saldo - importo;
+				super.saldo = super.saldo - importo;
+				super.listaMovimenti.add(new Movimento(dataMovimento, TipoOperazione.PRELIEVO, importo, tempSaldo));
+			}
 		}
 	}
 

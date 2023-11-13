@@ -3,16 +3,18 @@ package it.betacom.model;
 import java.time.LocalDate;
 
 public class ContoInvestimento extends Conto {
-	
+
 	public ContoInvestimento(String titolare, LocalDate dataApertura, double saldo, double tassoInteresse) {
 		super(titolare, dataApertura, saldo, tassoInteresse);
 	}
 
 	@Override
 	public void preleva(LocalDate dataMovimento, double importo) {
-		double tempSaldo = super.saldo - importo;
-		super.saldo = super.saldo - importo;
-		super.listaMovimenti.add(new Movimento(dataMovimento, TipoOperazione.PRELIEVO, importo, tempSaldo));
+		if(importo <= super.saldo) {
+			double tempSaldo = super.saldo - importo;
+			super.saldo = super.saldo - importo;
+			super.listaMovimenti.add(new Movimento(dataMovimento, TipoOperazione.PRELIEVO, importo, tempSaldo));
+		}
 	}
 
 	@Override
@@ -21,7 +23,7 @@ public class ContoInvestimento extends Conto {
 		super.saldo = super.saldo + importo;
 		super.listaMovimenti.add(new Movimento(dataMovimento, TipoOperazione.VERSAMENTO, importo, tempSaldo));
 	}
-	
+
 	@Override
 	public void estrattoConto(LocalDate dataStampa, String directoryPath) {
 		super.estrattoConto(dataStampa, directoryPath);

@@ -10,9 +10,11 @@ public class ContoCorrente extends Conto {
 
 	@Override
 	public void preleva(LocalDate dataMovimento, double importo) {
-		double tempSaldo = super.saldo - importo;
-		super.saldo = super.saldo - importo;
-		super.listaMovimenti.add(new Movimento(dataMovimento, TipoOperazione.PRELIEVO, importo, tempSaldo));
+		if(importo <= super.saldo) {
+			double tempSaldo = super.saldo - importo;
+			super.saldo = super.saldo - importo;
+			super.listaMovimenti.add(new Movimento(dataMovimento, TipoOperazione.PRELIEVO, importo, tempSaldo));
+		}
 	}
 
 	@Override
@@ -21,7 +23,7 @@ public class ContoCorrente extends Conto {
 		super.saldo = super.saldo + importo;
 		super.listaMovimenti.add(new Movimento(dataMovimento, TipoOperazione.VERSAMENTO, importo, tempSaldo));
 	}
-	
+
 	@Override
 	public void estrattoConto(LocalDate dataStampa, String directoryPath) {
 		super.estrattoConto(dataStampa, directoryPath);

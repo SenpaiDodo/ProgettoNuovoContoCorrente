@@ -68,19 +68,22 @@ public abstract class Conto {
 	public abstract void versa(LocalDate dataMovimento, double importo);
 	
 	public void estrattoConto(LocalDate dataStampa, String directoryPath) {
-		double interessiMaturati = this.generaInteressi();
-		logger.info("interessi calcolati netti: " + (interessiMaturati - (interessiMaturati*0.26)));
-		this.listaMovimenti.add(new Movimento(dataStampa, TipoOperazione.ESTRATTO_CONTO, 0, this.saldo = this.saldo + (interessiMaturati - (interessiMaturati*0.26))));
-		StampaEstrattoConto.stampaEstrattoConto(dataStampa, this, directoryPath);
+		double interessiMaturati = this.generaInteressi(dataStampa);
+		logger.info("interessi calcolati netti: " + (interessiMaturati * 0.74));
+		this.listaMovimenti.add(new Movimento(dataStampa, TipoOperazione.ESTRATTO_CONTO, 0, this.saldo = this.saldo + (interessiMaturati * 0.74)));
+		StampaEstrattoConto.stampaEstrattoConto(dataStampa, this, directoryPath, interessiMaturati);
+		this.pulisciStorico();
 	}
 	
 	public void chiusuraConto(LocalDate dataStampa, String directoryPath) {
-		double interessiMaturati = this.generaInteressi();
-		this.listaMovimenti.add(new Movimento(dataStampa, TipoOperazione.CHIUSURA_CONTO, 0, this.saldo = this.saldo + (interessiMaturati - (interessiMaturati*0.26))));
-		StampaEstrattoConto.stampaEstrattoConto(dataStampa, this, directoryPath);
+		double interessiMaturati = this.generaInteressi(dataStampa);
+		logger.info("interessi calcolati netti: " + (interessiMaturati * 0.74));
+		this.listaMovimenti.add(new Movimento(dataStampa, TipoOperazione.CHIUSURA_CONTO, 0, this.saldo = this.saldo + (interessiMaturati * 0.74)));
+		StampaEstrattoConto.stampaEstrattoConto(dataStampa, this, directoryPath, interessiMaturati);
+		this.pulisciStorico();
 	}
 
-	public double generaInteressi() {
+	public double generaInteressi(LocalDate dataFineCalcolo) {
 		double tempInteressi = 0.0;
 		for (int i = 1; i < this.listaMovimenti.size(); i++) {
             LocalDate date1 = this.listaMovimenti.get(i - 1).getDataOperazione();
@@ -88,9 +91,25 @@ public abstract class Conto {
             long daysBetween = ChronoUnit.DAYS.between(date1, date2);
             System.out.println(daysBetween);
 			tempInteressi = tempInteressi + (this.listaMovimenti.get(i - 1).getSaldoDopoMovimento() * this.tassoInteresseGiornaliero * daysBetween);
+			if(i == (this.listaMovimenti.size() - 1)) {
+				LocalDate date3 = dataFineCalcolo;
+				long daysBetween2 = ChronoUnit.DAYS.between(date2, date3);
+				tempInteressi = tempInteressi + (this.listaMovimenti.get(i).getSaldoDopoMovimento() * this.tassoInteresseGiornaliero * daysBetween2);
+			}
 		}
 		
 		logger.info("interessi calcolati: " + tempInteressi);
 		return tempInteressi;
+	}
+	
+	private void pulisciStorico() {
+		Movimento tempMove = null;
+		for(Movimento m : this.listaMovimenti) {
+			if(m.getTipoOperazione().equals(TipoOperazione.ESTRATTO_CONTO) || m.getTipoOperazione().equals(TipoOperazione.CHIUSURA_CONTO)) {
+				tempMove = m;
+			}
+		}
+		this.listaMovimenti.removeAll(listaMovimenti);
+		this.listaMovimenti.add(tempMove);
 	}
 }

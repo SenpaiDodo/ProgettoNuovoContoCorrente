@@ -14,7 +14,7 @@ import it.betacom.model.Conto;
 import it.betacom.model.Movimento;
 
 public class StampaEstrattoConto {
-	public static void stampaEstrattoConto(LocalDate dataStampa, Conto conto, String directoryPath) {
+	public static void stampaEstrattoConto(LocalDate dataStampa, Conto conto, String directoryPath, double interessiMaturati) {
 		
 		try {
 			DecimalFormat formato = new DecimalFormat("0.00");
@@ -31,10 +31,9 @@ public class StampaEstrattoConto {
 										  " | " + formato.format(m.getSaldoDopoMovimento()) + 
 										  " |"));
 			}
-			double interessiMaturati = conto.generaInteressi();
 			document.add(new Paragraph(" Interessi maturati al " + dataStampa + " lordi: " + formato.format(interessiMaturati)));
-			document.add(new Paragraph(" Interessi maturati al " + dataStampa + " netti: " + formato.format((interessiMaturati - (interessiMaturati * 0.26)))));
-			document.add(new Paragraph(" Saldo finale: " + formato.format((conto.getSaldo() + (interessiMaturati - (interessiMaturati*0.26))))));
+			document.add(new Paragraph(" Interessi maturati al " + dataStampa + " netti: " + formato.format((interessiMaturati * 0.74))));
+			document.add(new Paragraph(" Saldo finale: " + formato.format(conto.getSaldo())));
 			document.close();
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block

@@ -69,6 +69,7 @@ public abstract class Conto {
 	
 	public void estrattoConto(LocalDate dataStampa, String directoryPath) {
 		double interessiMaturati = this.generaInteressi();
+		logger.info("interessi calcolati netti: " + (interessiMaturati - (interessiMaturati*0.26)));
 		this.listaMovimenti.add(new Movimento(dataStampa, TipoOperazione.ESTRATTO_CONTO, 0, this.saldo = this.saldo + (interessiMaturati - (interessiMaturati*0.26))));
 		StampaEstrattoConto.stampaEstrattoConto(dataStampa, this, directoryPath);
 	}
@@ -88,6 +89,8 @@ public abstract class Conto {
             System.out.println(daysBetween);
 			tempInteressi = tempInteressi + (this.listaMovimenti.get(i - 1).getSaldoDopoMovimento() * this.tassoInteresseGiornaliero * daysBetween);
 		}
+		
+		logger.info("interessi calcolati: " + tempInteressi);
 		return tempInteressi;
 	}
 }

@@ -16,15 +16,18 @@ public abstract class Conto {
 	protected double saldo;
 	protected List<Movimento> listaMovimenti;
 	protected double tassoInteresseGiornaliero;
+	
+	protected static final double PERCENTUALE_NETTA = 0.74;
+	protected static final double BONUS_APERTURA_CONTO = 1000.0;
 	protected static final Logger logger = LogManager.getLogger("Conto");
 
 	public Conto(String titolare, LocalDate dataApertura, double saldo, double tassoInteresseGiornaliero) {
 		this.titolare = titolare;
 		this.dataApertura = dataApertura;
-		this.saldo = saldo + 1000.0;
+		this.saldo = saldo + BONUS_APERTURA_CONTO;
 		this.listaMovimenti = new ArrayList<Movimento>();
 		this.tassoInteresseGiornaliero = tassoInteresseGiornaliero;
-		this.listaMovimenti.add(new Movimento(dataApertura, TipoOperazione.APERTURA_CONTO, saldo + 1000.0, saldo + 1000.0));
+		this.listaMovimenti.add(new Movimento(dataApertura, TipoOperazione.APERTURA_CONTO, saldo + BONUS_APERTURA_CONTO, saldo + BONUS_APERTURA_CONTO));
 	}
 
 	public String getTitolare() {
@@ -69,8 +72,8 @@ public abstract class Conto {
 	
 	public void estrattoConto(LocalDate dataStampa, String directoryPath) {
 		double interessiMaturati = this.generaInteressi(dataStampa);
-		logger.info("interessi calcolati netti: " + (interessiMaturati * 0.74));
-		this.listaMovimenti.add(new Movimento(dataStampa, TipoOperazione.ESTRATTO_CONTO, 0, this.saldo = this.saldo + (interessiMaturati * 0.74)));
+		logger.info("interessi calcolati netti: " + (interessiMaturati * PERCENTUALE_NETTA));
+		this.listaMovimenti.add(new Movimento(dataStampa, TipoOperazione.ESTRATTO_CONTO, 0, this.saldo = this.saldo + (interessiMaturati * PERCENTUALE_NETTA)));
 		StampaEstrattoConto.stampaEstrattoConto(dataStampa, this, directoryPath, interessiMaturati);
 		this.pulisciStorico();
 	}
@@ -78,27 +81,35 @@ public abstract class Conto {
 	public void chiusuraConto(LocalDate dataStampa, String directoryPath) {
 		double interessiMaturati = this.generaInteressi(dataStampa);
 		logger.info("interessi calcolati netti: " + (interessiMaturati * 0.74));
-		this.listaMovimenti.add(new Movimento(dataStampa, TipoOperazione.CHIUSURA_CONTO, 0, this.saldo = this.saldo + (interessiMaturati * 0.74)));
+		this.listaMovimenti.add(new Movimento(dataStampa, TipoOperazione.CHIUSURA_CONTO, 0, this.saldo = this.saldo + (interessiMaturati * PERCENTUALE_NETTA)));
 		StampaEstrattoConto.stampaEstrattoConto(dataStampa, this, directoryPath, interessiMaturati);
 		this.pulisciStorico();
 	}
 
 	public double generaInteressi(LocalDate dataFineCalcolo) {
 		double tempInteressi = 0.0;
+		
 		for (int i = 1; i < this.listaMovimenti.size(); i++) {
             LocalDate date1 = this.listaMovimenti.get(i - 1).getDataOperazione();
             LocalDate date2 = this.listaMovimenti.get(i).getDataOperazione();
+            
             long daysBetween = ChronoUnit.DAYS.between(date1, date2);
-            System.out.println(daysBetween);
+            logger.info("intervallo di tempo parziale: " + daysBetween);
+            
 			tempInteressi = tempInteressi + (this.listaMovimenti.get(i - 1).getSaldoDopoMovimento() * this.tassoInteresseGiornaliero * daysBetween);
+			logger.info("interessi calcolati parziali: " + tempInteressi);
+		
 			if(i == (this.listaMovimenti.size() - 1)) {
 				LocalDate date3 = dataFineCalcolo;
-				long daysBetween2 = ChronoUnit.DAYS.between(date2, date3);
-				tempInteressi = tempInteressi + (this.listaMovimenti.get(i).getSaldoDopoMovimento() * this.tassoInteresseGiornaliero * daysBetween2);
+				
+				long finalDaysBetween = ChronoUnit.DAYS.between(date2, date3);
+				logger.info("intervallo di tempo ultimo periodo: " + finalDaysBetween);
+				
+				tempInteressi = tempInteressi + (this.listaMovimenti.get(i).getSaldoDopoMovimento() * this.tassoInteresseGiornaliero * finalDaysBetween);
 			}
 		}
 		
-		logger.info("interessi calcolati: " + tempInteressi);
+		logger.info("interessi calcolati finali: " + tempInteressi);
 		return tempInteressi;
 	}
 	

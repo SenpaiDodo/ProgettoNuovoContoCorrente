@@ -6,6 +6,7 @@ public class ContoInvestimento extends Conto {
 
 	public ContoInvestimento(String titolare, LocalDate dataApertura, double saldo, double tassoInteresse) {
 		super(titolare, dataApertura, saldo, tassoInteresse);
+		System.out.println("tassoInteresse " + tassoInteresse);
 	}
 
 	@Override
